@@ -499,5 +499,4 @@ if __name__ == '__main__':
 
 # TODO Add notification sender
 # TODO Add speed test
-# TODO Add File Download (Filters.video save to vids and ...)
 # TODO Add Battery Percentage
