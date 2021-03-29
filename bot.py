@@ -6,6 +6,7 @@ from config import *
 from os import system, popen, mkdir, path
 from datetime import datetime
 from time import sleep
+from re import findall
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
@@ -13,6 +14,7 @@ from telegram import error
 
 
 ADMIN: int = ADMIN_USERID
+file_name_regex = r'.*\/(.*)(?=)'
 
 
 def dir_maker(parent_folder: str, folder_name: str):
@@ -345,9 +347,57 @@ class Bot:
     @staticmethod
     def photo(update: Update, context: CallbackContext):
         media = update.message.photo[-1].file_id
-        pic_file = context.bot.getFile(media)
-        # dir_maker("Pictures")
-        pic_file.download()
+        pic_file = context.bot.get_file(media)
+        file_path = pic_file.file_path
+        file_name = findall(file_name_regex, file_path)[0]
+        dir_maker(APP_PATH, "Pictures")
+        pic_file.download(custom_path=f"{PIC_PATH}/{file_name}")
+
+        update.message.reply_text(f'Saved in {PIC_PATH} as: {file_name}')
+
+    @staticmethod
+    def video(update: Update, context: CallbackContext):
+        media = update.message.video.file_id
+        pic_file = context.bot.get_file(media)
+        file_path = pic_file.file_path
+        file_name = findall(file_name_regex, file_path)[0]
+        dir_maker(APP_PATH, "Videos")
+        pic_file.download(custom_path=f"{VIDEO_PATH}/{file_name}")
+
+        update.message.reply_text(f'Saved in {VIDEO_PATH} as: {file_name}')
+
+    @staticmethod
+    def file(update: Update, context: CallbackContext):
+        media = update.message.document.file_id
+        pic_file = context.bot.get_file(media)
+        file_path = pic_file.file_path
+        file_name = findall(file_name_regex, file_path)[0]
+        dir_maker(APP_PATH, "Documents")
+        pic_file.download(custom_path=f"{FILE_PATH}/{file_name}")
+
+        update.message.reply_text(f'Saved in {FILE_PATH} as: {file_name}')
+
+    @staticmethod
+    def voice(update: Update, context: CallbackContext):
+        media = update.message.voice.file_id
+        pic_file = context.bot.get_file(media)
+        file_path = pic_file.file_path
+        file_name = findall(file_name_regex, file_path)[0]
+        dir_maker(APP_PATH, "Voices")
+        pic_file.download(custom_path=f"{VOICE_PATH}/{file_name}")
+
+        update.message.reply_text(f'Saved in {VOICE_PATH} as: {file_name}')
+
+    @staticmethod
+    def audio(update: Update, context: CallbackContext):
+        media = update.message.audio.file_id
+        pic_file = context.bot.get_file(media)
+        file_path = pic_file.file_path
+        file_name = findall(file_name_regex, file_path)[0]
+        dir_maker(APP_PATH, "Audios")
+        pic_file.download(custom_path=f"{AUDIO_PATH}/{file_name}")
+
+        update.message.reply_text(f'Saved in {AUDIO_PATH} as: {file_name}')
 
     def main(self):
         updater = Updater(TOKEN, use_context=True)
@@ -374,7 +424,7 @@ class Bot:
         dpa(MessageHandler(Filters.regex('^💡 Brightness$'), self.brightness))
         dpa(MessageHandler(Filters.regex('^🔆 Up$'), self.brightness_up))
         dpa(MessageHandler(Filters.regex('^🔅 Down$'), self.brightness_down))
-        dpa(MessageHandler(Filters.regex('^📈 Maximum$'), self.brightness_down))
+        dpa(MessageHandler(Filters.regex('^📈 Maximum$'), self.brightness_max))
 
         dpa(MessageHandler(Filters.regex('^🔈 Volume$'), self.volume))
         dpa(MessageHandler(Filters.regex('^🔊 Up$'), self.volume_up))
@@ -391,6 +441,10 @@ class Bot:
         dpa(CallbackQueryHandler(self.button))
 
         dpa(MessageHandler(Filters.photo, self.photo))
+        dpa(MessageHandler(Filters.video, self.video))
+        dpa(MessageHandler(Filters.document, self.file))
+        dpa(MessageHandler(Filters.voice, self.voice))
+        dpa(MessageHandler(Filters.audio, self.audio))
 
         updater.start_polling()
         updater.idle()
