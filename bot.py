@@ -11,20 +11,17 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
 from telegram import error
 
+
 ADMIN: int = ADMIN_USERID
 
-HOME_DIR = path.expanduser("~")
-APP_PATH = f"{HOME_DIR}/KDE_Connect_Telegram"
-PIC_PATH = f'{APP_PATH}/Pictures'
-VIDEO_PATH = f'{APP_PATH}/Videos'
-FILE_PATH = f'{APP_PATH}/Documents'
-VOICE_PATH = f'{APP_PATH}/Voices'
-AUDIO_PATH = f'{APP_PATH}/Audios'
+
+def dir_maker(parent_folder: str, folder_name: str):
+    if not path.isdir(f"{parent_folder}/{folder_name}"):
+        mkdir(f"{parent_folder}/{folder_name}")
 
 
-def dir_maker(folder_name: str):
-    if not path.isdir(f"{APP_PATH}/{folder_name}"):
-        mkdir(f"{APP_PATH}/{folder_name}")
+def file_name_generator():
+    return str(datetime.now().strftime('%Y%m%d_%H%M%S'))
 
 
 def passer(uid: int):
@@ -76,6 +73,9 @@ class Keyboards:
 
 
 keyboards = Keyboards()
+
+
+dir_maker(HOME_DIR, APP_FOLDER_NAME)
 
 
 class Bot:
@@ -302,7 +302,7 @@ class Bot:
     @staticmethod
     def screen_shot_fullscreen_to_phone(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            file_name = f"/home/amiwr/Pictures/Screenshot/Screenshot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+            file_name = f"/home/amiwr/Pictures/Screenshot/Screenshot_{file_name_generator()}.png"
             system(f'spectacle -b -n -o {file_name}')
             sleep(0.5)
             update.message.reply_photo(photo=open(file_name, 'rb'),
@@ -314,7 +314,7 @@ class Bot:
     @staticmethod
     def screen_shot_active_to_phone(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            file_name = f"/home/amiwr/Pictures/Screenshot/Screenshot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+            file_name = f"/home/amiwr/Pictures/Screenshot/Screenshot_{file_name_generator()}.png"
             system(f'spectacle -a -n -b -o {file_name}')
             sleep(0.5)
             update.message.reply_photo(photo=open(file_name, 'rb'),
@@ -346,9 +346,8 @@ class Bot:
     def photo(update: Update, context: CallbackContext):
         media = update.message.photo[-1].file_id
         pic_file = context.bot.getFile(media)
-        if not path.isdir(f"{APP_PATH}/Pictures"):
-            mkdir(f"{APP_PATH}/Pictures")
-        pic_file.download(f"/home/amiwr/Pictures/")
+        # dir_maker("Pictures")
+        pic_file.download()
 
     def main(self):
         updater = Updater(TOKEN, use_context=True)
