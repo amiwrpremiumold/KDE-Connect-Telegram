@@ -3,7 +3,7 @@
 from myCommands import *
 from config import *
 
-from os import system, popen, mkdir
+from os import system, popen, mkdir, path
 from datetime import datetime
 from time import sleep
 
@@ -11,55 +11,71 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
 from telegram import error
 
-admin: int = ADMIN_USERID
+ADMIN: int = ADMIN_USERID
+
+HOME_DIR = path.expanduser("~")
+APP_PATH = f"{HOME_DIR}/KDE_Connect_Telegram"
+PIC_PATH = f'{APP_PATH}/Pictures'
+VIDEO_PATH = f'{APP_PATH}/Videos'
+FILE_PATH = f'{APP_PATH}/Documents'
+VOICE_PATH = f'{APP_PATH}/Voices'
+AUDIO_PATH = f'{APP_PATH}/Audios'
+
+
+def dir_maker(folder_name: str):
+    if not path.isdir(f"{APP_PATH}/{folder_name}"):
+        mkdir(f"{APP_PATH}/{folder_name}")
 
 
 def passer(uid: int):
-    if uid == admin:
+    if uid == ADMIN:
         return True
     else:
         return False
 
 
-home_keyboard = [
-    ['🎛️ States', '⚡️ Bluetooth'],
-    ['💡 Brightness', '🔈 Volume'],
-    ['📸 Screenshot', '⚙️ Utilities']
-]
-home_markup = ReplyKeyboardMarkup(home_keyboard)
+class Keyboards:
+    def __init__(self):
+        self.home_keyboard = [
+            ['🎛️ States', '⚡️ Bluetooth'],
+            ['💡 Brightness', '🔈 Volume'],
+            ['📸 Screenshot', '⚙️ Utilities']
+        ]
+        self.home_markup = ReplyKeyboardMarkup(self.home_keyboard)
+
+        self.states_keyboard = [
+            ['📴 Shutdown', '🔄 Reboot'],
+            ['⏸️ Suspend', '💤 Hibernate'],
+            ['🔒 Lock Screen', '🔓Unlock Screen'],
+            ['⚪ ️Screen On', '⚫️ Screen Off'],
+            ['🔒 Lock keyboard & Mouse', '🔓Unlock keyboard & Mouse'],
+            ['🏠 Home'],
+        ]
+        self.states_markup = ReplyKeyboardMarkup(self.states_keyboard, resize_keyboard=True)
+
+        self.brightness_keyboard = [
+            ['🔆 Up', '🔅 Down'],
+            ['📈 Maximum'],
+            ['🏠 Home']
+        ]
+        self.brightness_markup = ReplyKeyboardMarkup(self.brightness_keyboard, one_time_keyboard=False)
+
+        self.volume_keyboard = [
+            ['🔊 Up', '🔉 Down'],
+            ['🔇 Mute', '🎙 Mute Mic'],
+            ['🏠 Home']
+        ]
+        self.volume_markup = ReplyKeyboardMarkup(self.volume_keyboard, one_time_keyboard=False)
+
+        self.screenshot_keyboard = [
+            ['📸 Fullscreen', '📸 Active window'],
+            ['📸 Fullscreen Here', '📸 Active window Here'],
+            ['🏠 Home']
+        ]
+        self.screenshot_markup = ReplyKeyboardMarkup(self.screenshot_keyboard, one_time_keyboard=False)
 
 
-states_keyboard = [
-    ['📴 Shutdown', '🔄 Reboot'],
-    ['⏸️ Suspend', '💤 Hibernate'],
-    ['🔒 Lock Screen', '🔓Unlock Screen'],
-    ['⚪ ️Screen On', '⚫️ Screen Off'],
-    ['🔒 Lock keyboard & Mouse', '🔓Unlock keyboard & Mouse'],
-    ['🏠 Home'],
-]
-states_markup = ReplyKeyboardMarkup(states_keyboard, resize_keyboard=True)
-
-brightness_keyboard = [
-    ['🔆 Up', '🔅 Down'],
-    ['📈 Maximum'],
-    ['🏠 Home']
-]
-brightness_markup = ReplyKeyboardMarkup(brightness_keyboard, one_time_keyboard=False)
-
-volume_keyboard = [
-    ['🔊 Up', '🔉 Down'],
-    ['🔇 Mute', '🎙 Mute Mic'],
-    ['🏠 Home']
-]
-volume_markup = ReplyKeyboardMarkup(volume_keyboard, one_time_keyboard=False)
-
-
-screenshot_keyboard = [
-    ['📸 Fullscreen', '📸 Active window'],
-    ['📸 Fullscreen Here', '📸 Active window Here'],
-    ['🏠 Home']
-]
-screenshot_markup = ReplyKeyboardMarkup(screenshot_keyboard, one_time_keyboard=False)
+keyboards = Keyboards()
 
 
 class Bot:
@@ -69,7 +85,7 @@ class Bot:
     @staticmethod
     def start_command(update: Update, context: CallbackContext) -> None:
         if passer(update.message.from_user.id):
-            update.message.reply_text('Welcome Boss', reply_markup=home_markup)
+            update.message.reply_text('Welcome Boss', reply_markup=keyboards.home_markup)
         else:
             update.message.reply_text('Fuck Off')
         return
@@ -77,7 +93,7 @@ class Bot:
     @staticmethod
     def states(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            update.message.reply_text('🔹 Choose One 🔹', reply_markup=states_markup)
+            update.message.reply_text('🔹 Choose One 🔹', reply_markup=keyboards.states_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -116,7 +132,7 @@ class Bot:
     @staticmethod
     def suspend(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            update.message.reply_text('Suspended', reply_markup=states_markup)
+            update.message.reply_text('Suspended', reply_markup=keyboards.states_markup)
             system(Suspend)
         else:
             update.message.reply_text('Fuck Off')
@@ -124,7 +140,7 @@ class Bot:
     @staticmethod
     def hibernate(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            update.message.reply_text('Hibernated', reply_markup=states_markup)
+            update.message.reply_text('Hibernated', reply_markup=keyboards.states_markup)
             system(Hibernate)
         else:
             update.message.reply_text('Fuck Off')
@@ -132,7 +148,7 @@ class Bot:
     @staticmethod
     def lock_screen(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            update.message.reply_text('Screen Locked', reply_markup=states_markup)
+            update.message.reply_text('Screen Locked', reply_markup=keyboards.states_markup)
             system(Lock_screen)
         else:
             update.message.reply_text('Fuck Off')
@@ -140,7 +156,7 @@ class Bot:
     @staticmethod
     def unlock_screen(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            update.message.reply_text('Screen Unlocked', reply_markup=states_markup)
+            update.message.reply_text('Screen Unlocked', reply_markup=keyboards.states_markup)
             system(Unlock_screen)
         else:
             update.message.reply_text('Fuck Off')
@@ -148,7 +164,7 @@ class Bot:
     @staticmethod
     def turn_off_screen(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            update.message.reply_text('Screen Turned Off', reply_markup=states_markup)
+            update.message.reply_text('Screen Turned Off', reply_markup=keyboards.states_markup)
             system(Turn_off_screen)
         else:
             update.message.reply_text('Fuck Off')
@@ -156,7 +172,7 @@ class Bot:
     @staticmethod
     def turn_on_screen(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            update.message.reply_text('Screen Turned On', reply_markup=states_markup)
+            update.message.reply_text('Screen Turned On', reply_markup=keyboards.states_markup)
             system(Turn_on_screen)
         else:
             update.message.reply_text('Fuck Off')
@@ -164,7 +180,7 @@ class Bot:
     @staticmethod
     def lock_keyboard_and_mouse(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            update.message.reply_text('Keyboard & Mouse Locked', reply_markup=states_markup)
+            update.message.reply_text('Keyboard & Mouse Locked', reply_markup=keyboards.states_markup)
             system(Lock_keyboard_and_mouse)
         else:
             update.message.reply_text('Fuck Off')
@@ -172,7 +188,7 @@ class Bot:
     @staticmethod
     def unlock_keyboard_and_mouse(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            update.message.reply_text('Keyboard & Mouse Unlocked', reply_markup=states_markup)
+            update.message.reply_text('Keyboard & Mouse Unlocked', reply_markup=keyboards.states_markup)
             system(Unlock_keyboard_and_mouse)
         else:
             update.message.reply_text('Fuck Off')
@@ -192,7 +208,7 @@ class Bot:
     @staticmethod
     def brightness(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            update.message.reply_text('Up And Down', reply_markup=brightness_markup)
+            update.message.reply_text('Up And Down', reply_markup=keyboards.brightness_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -200,7 +216,7 @@ class Bot:
     def brightness_up(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
             system(Brightness_Up)
-            update.message.reply_text('🔆 Brightness Increased', reply_markup=brightness_markup)
+            update.message.reply_text('🔆 Brightness Increased', reply_markup=keyboards.brightness_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -208,7 +224,7 @@ class Bot:
     def brightness_down(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
             system(Brightness_Down)
-            update.message.reply_text('🔅 Brightness Decreased', reply_markup=brightness_markup)
+            update.message.reply_text('🔅 Brightness Decreased', reply_markup=keyboards.brightness_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -216,14 +232,14 @@ class Bot:
     def brightness_max(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
             system(Brightness_Maximum)
-            update.message.reply_text('📈 Maximum Brightness', reply_markup=brightness_markup)
+            update.message.reply_text('📈 Maximum Brightness', reply_markup=keyboards.brightness_markup)
         else:
             update.message.reply_text('Fuck Off')
 
     @staticmethod
     def volume(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
-            update.message.reply_text('Up And Down', reply_markup=volume_markup)
+            update.message.reply_text('Up And Down', reply_markup=keyboards.volume_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -231,7 +247,7 @@ class Bot:
     def volume_up(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
             system(Volume_up)
-            update.message.reply_text('🔊 Volume Increased', reply_markup=volume_markup)
+            update.message.reply_text('🔊 Volume Increased', reply_markup=keyboards.volume_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -239,7 +255,7 @@ class Bot:
     def volume_down(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
             system(Volume_down)
-            update.message.reply_text('🔉 Volume Decreased', reply_markup=volume_markup)
+            update.message.reply_text('🔉 Volume Decreased', reply_markup=keyboards.volume_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -247,7 +263,7 @@ class Bot:
     def mute(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
             system(Mute)
-            update.message.reply_text('🔇 Muted', reply_markup=volume_markup)
+            update.message.reply_text('🔇 Muted', reply_markup=keyboards.volume_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -255,7 +271,7 @@ class Bot:
     def mute_mic(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
             system(Mute_microphone)
-            update.message.reply_text('🎙 Microphone Muted', reply_markup=volume_markup)
+            update.message.reply_text('🎙 Microphone Muted', reply_markup=keyboards.volume_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -263,7 +279,7 @@ class Bot:
     def screenshot(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
             update.message.reply_text('🔹 Choose One 🔹',
-                                      reply_markup=screenshot_markup)
+                                      reply_markup=keyboards.screenshot_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -271,7 +287,7 @@ class Bot:
     def screen_shot_fullscreen(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
             system(f'spectacle -b')
-            update.message.reply_text('Captured', reply_markup=screenshot_markup)
+            update.message.reply_text('Captured', reply_markup=keyboards.screenshot_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -279,7 +295,7 @@ class Bot:
     def screen_shot_active(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
             system(f'spectacle -a -b')
-            update.message.reply_text('Captured', reply_markup=screenshot_markup)
+            update.message.reply_text('Captured', reply_markup=keyboards.screenshot_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -291,7 +307,7 @@ class Bot:
             sleep(0.5)
             update.message.reply_photo(photo=open(file_name, 'rb'),
                                        caption=str(file_name),
-                                       reply_markup=screenshot_markup)
+                                       reply_markup=keyboards.screenshot_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -303,7 +319,7 @@ class Bot:
             sleep(0.5)
             update.message.reply_photo(photo=open(file_name, 'rb'),
                                        caption=str(file_name),
-                                       reply_markup=screenshot_markup)
+                                       reply_markup=keyboards.screenshot_markup)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -330,6 +346,8 @@ class Bot:
     def photo(update: Update, context: CallbackContext):
         media = update.message.photo[-1].file_id
         pic_file = context.bot.getFile(media)
+        if not path.isdir(f"{APP_PATH}/Pictures"):
+            mkdir(f"{APP_PATH}/Pictures")
         pic_file.download(f"/home/amiwr/Pictures/")
 
     def main(self):
