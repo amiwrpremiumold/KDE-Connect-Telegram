@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from myCommands import *
-from config import *
+from myConfig import *
 
 from os import system, popen, mkdir, path
 from datetime import datetime
@@ -38,7 +38,7 @@ class Keyboards:
         self.home_keyboard = [
             ['🎛️ States', '⚡️ Bluetooth'],
             ['💡 Brightness', '🔈 Volume'],
-            ['📸 Screenshot', '⚙️ Utilities']
+            ['📸 Capture', '⚙️ Utilities']
         ]
         self.home_markup = ReplyKeyboardMarkup(self.home_keyboard)
 
@@ -67,8 +67,9 @@ class Keyboards:
         self.volume_markup = ReplyKeyboardMarkup(self.volume_keyboard, one_time_keyboard=False)
 
         self.screenshot_keyboard = [
-            ['📸 Fullscreen', '📸 Active window'],
-            ['📸 Fullscreen Here', '📸 Active window Here'],
+            ['🖥 Fullscreen', '🖥 Active window'],
+            ['🖥 Fullscreen Here', '🖥 Active window Here'],
+            ['📸 Webcam'],
             ['🏠 Home']
         ]
         self.screenshot_markup = ReplyKeyboardMarkup(self.screenshot_keyboard, one_time_keyboard=False)
@@ -278,7 +279,7 @@ class Bot:
             update.message.reply_text('Fuck Off')
 
     @staticmethod
-    def screenshot(update: Update, context: CallbackContext):
+    def capture(update: Update, context: CallbackContext):
         if passer(update.message.from_user.id):
             update.message.reply_text('🔹 Choose One 🔹',
                                       reply_markup=keyboards.screenshot_markup)
@@ -322,6 +323,20 @@ class Bot:
             update.message.reply_photo(photo=open(file_name, 'rb'),
                                        caption=str(file_name),
                                        reply_markup=keyboards.screenshot_markup)
+        else:
+            update.message.reply_text('Fuck Off')
+
+    @staticmethod
+    def webcam(update: Update, context: CallbackContext):
+        if passer(update.message.from_user.id):
+            file_name = f"{APP_PATH}/{PIC_PATH}/{file_name_generator()}.jpeg"
+            system(f'streamer -f jpeg -o {file_name}')
+            try:
+                update.message.reply_photo(file_name, caption=file_name)
+            except Exception as e:
+                update.message.reply_text(f'⚠️ Failed To Complete The Task Due To Below Error:\n\n'
+                                          f'<code>{str(e)}</code>',
+                                          parse_mode=ParseMode.HTML)
         else:
             update.message.reply_text('Fuck Off')
 
@@ -457,11 +472,12 @@ class Bot:
         dpa(MessageHandler(Filters.regex('^🔇 Mute$'), self.mute))
         dpa(MessageHandler(Filters.regex('^🎙 Mute Mic$'), self.mute_mic))
 
-        dpa(MessageHandler(Filters.regex('^📸 Screenshot$'), self.screenshot))
-        dpa(MessageHandler(Filters.regex('^📸 Fullscreen$'), self.screen_shot_fullscreen))
-        dpa(MessageHandler(Filters.regex('^📸 Active window$'), self.screen_shot_active))
-        dpa(MessageHandler(Filters.regex('^📸 Fullscreen Here$'), self.screen_shot_fullscreen_to_phone))
-        dpa(MessageHandler(Filters.regex('^📸 Active window Here$'), self.screen_shot_active_to_phone))
+        dpa(MessageHandler(Filters.regex('^📸 Capture$'), self.capture))
+        dpa(MessageHandler(Filters.regex('^🖥 Fullscreen$'), self.screen_shot_fullscreen))
+        dpa(MessageHandler(Filters.regex('^🖥 Active window$'), self.screen_shot_active))
+        dpa(MessageHandler(Filters.regex('^🖥 Fullscreen Here$'), self.screen_shot_fullscreen_to_phone))
+        dpa(MessageHandler(Filters.regex('^🖥 Active window Here$'), self.screen_shot_active_to_phone))
+        dpa(MessageHandler(Filters.regex('^📸 Webcam$'), self.webcam))
 
         dpa(CallbackQueryHandler(self.button))
 
