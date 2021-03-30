@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from myCommands import *
-from myConfig import *
+from config import *
 
 from os import system, popen, mkdir, path
 from datetime import datetime
